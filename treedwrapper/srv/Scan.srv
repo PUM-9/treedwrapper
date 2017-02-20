@@ -1,0 +1,6 @@
+int32 y_angle
+int32 x_angle
+---
+sensor_msgs/PointCloud2 pointcloud
+int16 exit_code
+string error_message
