@@ -7,7 +7,7 @@ import time
 from treedwrapper.srv import WrapperScan, WrapperScanResponse
 import sensor_msgs.point_cloud2 as pc2
 from sensor_msgs.msg import PointCloud2
-from watchdog import Watchdog, HardwareError
+from watchdog import Watchdog, hardwareErrorOccur
 
 def wrapper_scan(req):
     """
@@ -21,49 +21,57 @@ def wrapper_scan(req):
     y = req.y_angle
     default_file_path = "/tmp/recentscan.pcd"
 
-    # Check if the angles are allowed.
-    if (is_valid_angle(x, y)):
-        return WrapperScanResponse(None, 1, "Angle is not allowed")
+    # Check if the X angle is allowed.
+    if is_x_angle_valid(x):
+        return WrapperScanResponse(None, 1, "X value is not allowed, should be between 0 and 359")
 
-    
-    try:
-        watchdog_scan = Watchdog(5)
-        os.system("treed set --table-rotation " + str(y))
-        os.system("treed set --table-curve " + str(x))
-        os.system("treed scan -o " + default_file_path)
-    except:
-        print "except"
-        return WrapperScanResponse(None, 1, "has")
-        
+    # Check if the Y angle is allowed.
+    if is_y_angle_valid(y):
+        return WrapperScanResponse(None, 1, "Y value is not allowed, should be between -20 and 90")
+
+    # Create a watchdog object that start a timer and confirm that the scan would be successfully completed.
+    watchdog_scan = Watchdog(5)
+    os.system("treed set --table-rotation " + str(y))
+    os.system("treed set --table-curve " + str(x))
+    os.system("treed scan -o " + default_file_path)
     watchdog_scan.stop()
 
-	# Load in all the gathered points into a numpy array
+    # Check if the global variable in watchdog.py file has been set or not, to detect hardware error.
+    if hardwareErrorOccur:
+        return WrapperScanResponse(None, 1, "There is something wrong with the hardware")
+
+    # Load in all the gathered points into a numpy array.
     p = pcl.load(default_file_path)
 
-	# Convert points gathered from scan to PointCloud2 object.
+    # Convert points gathered from scan to PointCloud2 object.
     pcloud = PointCloud2()
     pcloud = pc2.create_cloud_xyz32(pcloud.header, p.to_list())
 
     return WrapperScanResponse(pcloud, 0, "")
 
-def is_valid_angle(x, y):
+def is_x_angle_valid(x):
     """
-    Checks whether the angle for rotating the object (y) and the angle for rotating the
-    table (x) upward/downward is allowed.
+    Check if the angle for curve the table (x) upward/downward is allowed.
     :param x: -20 to 90
-    :param y: 0 to 359
-    :return: bool Whether
+    :return: bool, true if not allowed, false if allowed.
     """
+    return x < -20 or x > 90
 
-    return (x < -20 or x > 90) or (y < 0 or y > 359)
+def is_y_angle_valid(y):
+    """
+    Check if the angle for rotating the board (y) is allowed.
+    :param y: 0 to 359
+    :return: bool, true if not allowed, false if allowed.
+    """
+    return y < 0 or y > 359
 
 def main():
     """
-    Spins up the wscan service.
+    Spins up the WrapperScan service.
     :return: None
     """
     rospy.init_node('treedwrapper', anonymous=False)
-    wrapper_scan_service = rospy.Service('wrapperscan', WrapperScan, wrapper_scan)
+    rospy.Service('wrapperscan', WrapperScan, wrapper_scan)
     rospy.spin()
 
 if __name__ == '__main__':
