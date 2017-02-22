@@ -2,7 +2,11 @@
 
 import rospy
 import os
+<<<<<<< HEAD
 from treedwrapper.srv import Scan, ScanResponse
+=======
+from treedwrapper.srv import Scan
+>>>>>>> github/master
 
 
 def wrapper_scan(req):
