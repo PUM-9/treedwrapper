@@ -9,6 +9,24 @@ from sensor_msgs.msg import PointCloud2
 import pexpect
 
 
+def is_valid_x_angle(x):
+    """
+    Check if the angle for curve the table (x) upward/downward is allowed.
+    :param x: -20 to 90
+    :return: bool, true if not allowed, false if allowed.
+    """
+    return x < -20 or x > 90
+
+
+def is_valid_y_angle(y):
+    """
+    Check if the angle for rotating the board (y) is allowed.
+    :param y: 0 to 359
+    :return: bool, true if not allowed, false if allowed.
+    """
+    return y < 0 or y > 359
+
+
 def wrapper_scan(req):
     """
     Handles a scan request, by completing a scan at defined angles and returns a PCL object. Allowed angles are for
@@ -18,7 +36,7 @@ def wrapper_scan(req):
     """
     x = req.x_angle
     y = req.y_angle
-    default_file_path = "/tmp/recentscan.pcd"
+    default_file_path = "/tmp/recent_scan.pcd"
 
     # Check if the X angle is allowed.
     if is_valid_x_angle(x):
@@ -35,9 +53,9 @@ def wrapper_scan(req):
     # Confirm that a scan would be successfully completed.
     try:
         # Starting a child process running the scan command.
-        child_process = pexpect.spawn ("treed scan -o " + default_file_path)
+        child_process = pexpect.spawn("treed scan -o " + default_file_path)
         # Timeouts after 40 seconds.
-        child_process.expect('File saved to ' + default_file_path, timeout = 40)
+        child_process.expect('File saved to ' + default_file_path, timeout=40)
     except pexpect.TIMEOUT:
         return WrapperScanResponse(None, 1, "There is something wrong with the hardware")
 
@@ -49,24 +67,6 @@ def wrapper_scan(req):
     point_cloud = pc2.create_cloud_xyz32(point_cloud.header, points.to_list())
 
     return WrapperScanResponse(point_cloud, 0, "")
-
-
-def is_x_angle_valid(x):
-    """
-    Check if the angle for curve the table (x) upward/downward is allowed.
-    :param x: -20 to 90
-    :return: bool, true if not allowed, false if allowed.
-    """
-    return x < -20 or x > 90
-
-
-def is_y_angle_valid(y):
-    """
-    Check if the angle for rotating the board (y) is allowed.
-    :param y: 0 to 359
-    :return: bool, true if not allowed, false if allowed.
-    """
-    return y < 0 or y > 359
 
 
 def main():
