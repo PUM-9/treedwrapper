@@ -3,11 +3,11 @@
 import rospy
 import os
 import pcl
-import time
 from treedwrapper.srv import WrapperScan, WrapperScanResponse
 import sensor_msgs.point_cloud2 as pc2
 from sensor_msgs.msg import PointCloud2
 from watchdog import Watchdog, hardwareErrorOccur
+
 
 def wrapper_scan(req):
     """
@@ -49,6 +49,7 @@ def wrapper_scan(req):
 
     return WrapperScanResponse(pcloud, 0, "")
 
+
 def is_x_angle_valid(x):
     """
     Check if the angle for curve the table (x) upward/downward is allowed.
@@ -57,6 +58,7 @@ def is_x_angle_valid(x):
     """
     return x < -20 or x > 90
 
+
 def is_y_angle_valid(y):
     """
     Check if the angle for rotating the board (y) is allowed.
@@ -64,6 +66,7 @@ def is_y_angle_valid(y):
     :return: bool, true if not allowed, false if allowed.
     """
     return y < 0 or y > 359
+
 
 def main():
     """
