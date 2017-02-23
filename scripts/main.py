@@ -57,7 +57,7 @@ def wrapper_scan(req):
         # Timeouts after 40 seconds.
         child_process.expect('File saved to ' + default_file_path, timeout=40)
     except pexpect.TIMEOUT:
-        return WrapperScanResponse(None, 1, "There is something wrong with the hardware")
+        return WrapperScanResponse(None, 1, "There is something wrong with the hardware - timeout")
 
     # Load in all the gathered points into a numpy array.
     points = pcl.load(default_file_path)
