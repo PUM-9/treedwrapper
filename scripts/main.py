@@ -13,18 +13,18 @@ def is_valid_x_angle(x):
     """
     Check if the angle for curve the table (x) upward/downward is allowed.
     :param x: -20 to 90
-    :return: bool, true if not allowed, false if allowed.
+    :return: bool, true if allowed, false if not allowed.
     """
-    return x < -20 or x > 90
+    return -20 <= x <= 90
 
 
 def is_valid_y_angle(y):
     """
     Check if the angle for rotating the board (y) is allowed.
     :param y: 0 to 359
-    :return: bool, true if not allowed, false if allowed.
+    :return: bool, true if allowed, false if not allowed.
     """
-    return y < 0 or y > 359
+    return 0 <= y <= 359
 
 
 def wrapper_scan(req):
@@ -39,11 +39,11 @@ def wrapper_scan(req):
     default_file_path = "/tmp/recent_scan.pcd"
 
     # Check if the X angle is allowed.
-    if is_valid_x_angle(x):
+    if not is_valid_x_angle(x):
         return WrapperScanResponse(None, 1, "X value is not allowed, should be between 0 and 359")
 
     # Check if the Y angle is allowed.
-    if is_valid_y_angle(y):
+    if not is_valid_y_angle(y):
         return WrapperScanResponse(None, 1, "Y value is not allowed, should be between -20 and 90")
         
     # Rotate the object and table.
