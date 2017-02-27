@@ -46,7 +46,8 @@ def wrapper_scan(req):
     if not is_valid_y_angle(y):
         return WrapperScanResponse(None, 1, "Y value is not allowed, should be between -20 and 90")
         
-    # Rotate the object and table.
+    # Rotate the object and table and set the speed of the camera.
+    os.system("treed set --cart-speed 400")
     os.system("treed set --table-rotation " + str(y))
     os.system("treed set --table-curve " + str(x))
     
