@@ -1,12 +1,11 @@
 #!/usr/bin/env python
 
 import rospy
-import os
 import pcl
+import subprocess
 from treedwrapper.srv import WrapperScan, WrapperScanResponse
 import sensor_msgs.point_cloud2 as pc2
 from sensor_msgs.msg import PointCloud2
-import pexpect
 
 
 def is_valid_x_angle(x):
@@ -47,21 +46,28 @@ def wrapper_scan(req):
         return WrapperScanResponse(None, 1, "Y value is not allowed, should be between -20 and 90")
         
     # Rotate the object and table and set the speed of the camera.
-    os.system("treed set --cart-speed 200")
-    os.system("treed set --table-rotation " + str(y))
-    os.system("treed set --table-curve " + str(x))
-    
-    # Confirm that a scan would be successfully completed.
-    try:
-        # Starting a child process running the scan command.
-        child_process = pexpect.spawn("treed scan -o " + default_file_path)
-        # Timeouts after 40 seconds.
-        child_process.expect('File saved to ' + default_file_path, timeout=40)
-    except pexpect.TIMEOUT:
-        return WrapperScanResponse(None, 1, "There is something wrong with the hardware - timeout")
+    output = subprocess.Popen(['treed', 'set', '--cart-speed', '200'], stdout=subprocess.PIPE).communicate()
+    print "cart speed"
+    print output
+    output = subprocess.Popen(['treed', 'set', '--table-rotation', str(y)], stdout=subprocess.PIPE).communicate()
+    print "set rotation"
+    print output
+    output = subprocess.Popen(['treed', 'set', '--table-curve', str(x)], stdout=subprocess.PIPE).communicate()
+    print "set curve"
+    print output
+    output = subprocess.Popen(['treed', 'scan', '-o', default_file_path], stdout=subprocess.PIPE).communicate()
+    print "scan"
+    print output
 
     # Load in all the gathered points into a numpy array.
     points = pcl.load(default_file_path)
+
+    # Check that there are enough points
+    points_size = points.size()
+    minimum_size = 50
+    if points_size < minimum_size:
+        return WrapperScanResponse(None, 1, "Not enough points only " + str(points_size) +
+                                   " point must be atleast " + str(minimum_size) + ".")
 
     # Convert points gathered from scan to PointCloud2 object.
     point_cloud = PointCloud2()
