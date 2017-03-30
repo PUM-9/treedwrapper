@@ -63,10 +63,11 @@ def wrapper_scan(req):
                                    + str(y) + ".")
 
     # Rotate the object and table and set the speed of the camera.
-    os.system('treed set --cart-speed 200')
-    os.system('treed set --table-rotation ' + str(y))
-    os.system('treed set --table-curve ' + str(x))
+    os.system("treed set --cart-speed 200")
+    os.system("treed set --table-rotation " + str(y))
+    os.system("treed set --table-curve " + str(x))
 
+    # Confirm that a scan would be successfully completed.
     try:
         # Starting a child process running the scan command.
         run_child("treed scan -o " + default_file_path, 'File saved to ' + default_file_path, 120)
