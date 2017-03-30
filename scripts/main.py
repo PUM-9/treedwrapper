@@ -2,7 +2,7 @@
 
 import rospy
 import pcl
-import subprocess
+import os
 from treedwrapper.srv import WrapperScan, WrapperScanResponse
 import sensor_msgs.point_cloud2 as pc2
 from sensor_msgs.msg import PointCloud2
@@ -62,11 +62,12 @@ def wrapper_scan(req):
         return WrapperScanResponse(None, 2, "Y value is not allowed, should be between 0 and 359. The input value was "
                                    + str(y) + ".")
 
+    # Rotate the object and table and set the speed of the camera.
+    os.system('treed set --cart-speed 200')
+    os.system('treed set --table-rotation ' + str(y))
+    os.system('treed set --table-curve ' + str(x))
+
     try:
-        # Rotate the object and table and set the speed of the camera.
-        run_child('treed set --cart-speed 200', '', 10)
-        run_child('treed set --table-rotation ' + str(y), '', 20)
-        run_child('treed set --table-curve ' + str(x), '', 20)
         # Starting a child process running the scan command.
         run_child("treed scan -o " + default_file_path, 'File saved to ' + default_file_path, 120)
     except (pexpect.TIMEOUT, Exception), e:
