@@ -6,6 +6,7 @@ import subprocess
 from treedwrapper.srv import WrapperScan, WrapperScanResponse
 import sensor_msgs.point_cloud2 as pc2
 from sensor_msgs.msg import PointCloud2
+import pexpect
 
 
 def is_valid_x_angle(x):
@@ -57,18 +58,16 @@ def wrapper_scan(req):
     output = subprocess.Popen(['treed', 'set', '--table-curve', str(x)], stdout=subprocess.PIPE).communicate()
     print "set curve"
     print output
-    output = subprocess.Popen(['treed', 'scan', '-o', default_file_path], stdout=subprocess.PIPE).communicate()
-    print "scan"
-    print output
-    """
+
     try:
         # Starting a child process running the scan command.
         child_process = pexpect.spawn("treed scan -o " + default_file_path)
         # Timeouts after 40 seconds.
         child_process.expect('File saved to ' + default_file_path, timeout=40)
-    except pexpect.TIMEOUT:
-        return WrapperScanResponse(None, 1, "There is something wrong with the hardware - timeout")
-    """
+    except (pexpect.TIMEOUT, Exception), e:
+        return WrapperScanResponse(None, 1, "There is something wrong with the hardware:\n " + str(e))
+
+
     # Load in all the gathered points into a numpy array.
     points = pcl.load(default_file_path)
 
