@@ -55,15 +55,21 @@ def wrapper_scan(req):
 
     try:
         # Rotate the object and table and set the speed of the camera.
+        print "1"
         run_child('treed set --cart-speed 200', '', 10)
+        print "2"
         run_child('treed set --table-rotation ' + str(y), '', 20)
+        print "3"
         run_child('treed set --table-curve ' + str(x), '', 20)
-
+        print "4"
         # Starting a child process running the scan command.
         run_child("treed scan -o " + default_file_path, 'File saved to ' + default_file_path, 40)
+        print "5"
     except (pexpect.TIMEOUT, Exception), e:
+        print "error"
         return WrapperScanResponse(None, 1, "There is something wrong with the hardware:\n " + str(e))
-
+    finally:
+        print "finally"
     # Load in all the gathered points into a numpy array.
     points = pcl.load(default_file_path)
 
