@@ -68,7 +68,7 @@ def wrapper_scan(req):
         run_child('treed set --table-rotation ' + str(y), '', 20)
         run_child('treed set --table-curve ' + str(x), '', 20)
         # Starting a child process running the scan command.
-        run_child("treed scan -o " + default_file_path, 'File saved to ' + default_file_path, 40)
+        run_child("treed scan -o " + default_file_path, 'File saved to ' + default_file_path, 120)
     except (pexpect.TIMEOUT, Exception), e:
         print "Hardware failure"
         return WrapperScanResponse(None, 3, "There is something wrong with the hardware:\n " + str(e))
