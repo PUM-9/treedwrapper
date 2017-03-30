@@ -27,6 +27,20 @@ def is_valid_y_angle(y):
     return 0 <= y <= 359
 
 
+def run_child(cmd, expected_output, timeout):
+    """
+    Runs a command as a child process with a expected output and a timeout. Throws an exception if timeout is
+    reached or output differs from what is expected.
+    :param cmd: The command to be ran
+    :param expected_output: The output we expect the command to give.
+    :param timeout: The maximum time it can take.
+    :return: None
+    """
+    child = pexpect.spawn(cmd)
+    child.expect(expected_output, timeout=timeout)
+    child.close()
+
+
 def wrapper_scan(req):
     """
     Handles a scan request, by completing a scan at defined angles and returns a PCL object. Allowed angles are for
@@ -48,28 +62,18 @@ def wrapper_scan(req):
         return WrapperScanResponse(None, 1, "Y value is not allowed, should be between 0 and 359. The input value was "
                                    + str(y) + ".")
 
-    def run_child(cmd, expected_output, timeout):
-        child = pexpect.spawn(cmd)
-        child.expect(expected_output, timeout=timeout)
-        child.close()
 
     try:
         # Rotate the object and table and set the speed of the camera.
-        print "1"
         run_child('treed set --cart-speed 200', '', 10)
-        print "2"
         run_child('treed set --table-rotation ' + str(y), '', 20)
-        print "3"
         run_child('treed set --table-curve ' + str(x), '', 20)
-        print "4"
         # Starting a child process running the scan command.
         run_child("treed scan -o " + default_file_path, 'File saved to ' + default_file_path, 40)
-        print "5"
     except (pexpect.TIMEOUT, Exception), e:
-        print "error"
+        print "Hardware failure"
         return WrapperScanResponse(None, 1, "There is something wrong with the hardware:\n " + str(e))
-    finally:
-        print "finally"
+
     # Load in all the gathered points into a numpy array.
     points = pcl.load(default_file_path)
 
