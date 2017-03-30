@@ -39,11 +39,13 @@ def wrapper_scan(req):
 
     # Check if the X angle is allowed.
     if not is_valid_x_angle(x):
-        return WrapperScanResponse(None, 1, "X value is not allowed, should be between 0 and 359")
+        return WrapperScanResponse(None, 1, "X value is not allowed, should be between -20 and 90. The input value was "
+                                   + str(x) + ".")
 
     # Check if the Y angle is allowed.
     if not is_valid_y_angle(y):
-        return WrapperScanResponse(None, 1, "Y value is not allowed, should be between -20 and 90")
+        return WrapperScanResponse(None, 1, "Y value is not allowed, should be between 0 and 359. The input value was "
+                                   + str(y) + ".")
         
     # Rotate the object and table and set the speed of the camera.
     output = subprocess.Popen(['treed', 'set', '--cart-speed', '200'], stdout=subprocess.PIPE).communicate()
@@ -58,7 +60,15 @@ def wrapper_scan(req):
     output = subprocess.Popen(['treed', 'scan', '-o', default_file_path], stdout=subprocess.PIPE).communicate()
     print "scan"
     print output
-
+    """
+    try:
+        # Starting a child process running the scan command.
+        child_process = pexpect.spawn("treed scan -o " + default_file_path)
+        # Timeouts after 40 seconds.
+        child_process.expect('File saved to ' + default_file_path, timeout=40)
+    except pexpect.TIMEOUT:
+        return WrapperScanResponse(None, 1, "There is something wrong with the hardware - timeout")
+    """
     # Load in all the gathered points into a numpy array.
     points = pcl.load(default_file_path)
 
